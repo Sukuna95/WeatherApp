@@ -3,7 +3,7 @@ import CurrentWeather from './components/CurrentWeather';
 import Forecast from './components/Forecast';
 import './styles/App.css';
 
-const API_KEY = '3b7ad78f347d75f75cf2ff649fd2f5a7';
+const API_KEY = 'API_KEY_HERE'
 const API_URL = 'https://api.openweathermap.org/data/2.5';
 
 function App() {

@@ -1,43 +1,251 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
-
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecast App</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../src/styles/App.css">
+        
+</head>
+<body>
     <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+    <script type="text/babel">
+        // API key for OpenWeatherMap (Note: In a real app, this should be secured and not exposed in frontend code)
+        // This is a free API key for demonstration purposes - may have limited requests
+        const API_KEY = '3b7ad78f347d75f75cf2ff649fd2f5a7';
+        const API_URL = 'https://api.openweathermap.org/data/2.5';
 
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
-  </body>
+        // Weather icons mapping
+        const weatherIcons = {
+            '01d': 'fas fa-sun',
+            '01n': 'fas fa-moon',
+            '02d': 'fas fa-cloud-sun',
+            '02n': 'fas fa-cloud-moon',
+            '03d': 'fas fa-cloud',
+            '03n': 'fas fa-cloud',
+            '04d': 'fas fa-cloud',
+            '04n': 'fas fa-cloud',
+            '09d': 'fas fa-cloud-showers-heavy',
+            '09n': 'fas fa-cloud-showers-heavy',
+            '10d': 'fas fa-cloud-sun-rain',
+            '10n': 'fas fa-cloud-moon-rain',
+            '11d': 'fas fa-bolt',
+            '11n': 'fas fa-bolt',
+            '13d': 'fas fa-snowflake',
+            '13n': 'fas fa-snowflake',
+            '50d': 'fas fa-smog',
+            '50n': 'fas fa-smog'
+        };
+
+        // ForecastItem Component
+        function ForecastItem({ data }) {
+            const { dt, main, weather } = data;
+            const forecastWeather = weather[0];
+            const iconClass = weatherIcons[forecastWeather.icon] || 'fas fa-cloud';
+            
+            // Format date
+            const date = new Date(dt * 1000).toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric'
+            });
+            
+            return (
+                <div className="forecast-item">
+                    <p className="forecast-date">{date}</p>
+                    <div className="forecast-icon">
+                        <i className={iconClass}></i>
+                    </div>
+                    <p className="forecast-temp">{Math.round(main.temp)}°C</p>
+                    <p>{forecastWeather.description}</p>
+                </div>
+            );
+        }
+
+        // Forecast Component
+        function Forecast({ data }) {
+            // Group forecast by day and get one reading per day
+            const dailyForecast = data.list.filter((reading, index) => index % 8 === 0);
+            
+            return (
+                <>
+                    <h3 className="forecast-title">5-Day Forecast</h3>
+                    <div className="forecast">
+                        {dailyForecast.map((day, index) => (
+                            <ForecastItem key={index} data={day} />
+                        ))}
+                    </div>
+                </>
+            );
+        }
+
+        // CurrentWeather Component
+        function CurrentWeather({ data }) {
+            const { name, main, weather, wind, sys } = data;
+            const currentWeather = weather[0];
+            const iconClass = weatherIcons[currentWeather.icon] || 'fas fa-cloud';
+            
+            // Format date
+            const date = new Date().toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            return (
+                <div className="current-weather">
+                    <h2 className="location">
+                        {name}, {sys.country}
+                    </h2>
+                    <p className="date">{date}</p>
+                    
+                    <div className="weather-icon">
+                        <i className={iconClass}></i>
+                    </div>
+                    
+                    <h1 className="temperature">{Math.round(main.temp)}°C</h1>
+                    <p className="weather-description">{currentWeather.description}</p>
+                    
+                    <div className="weather-details">
+                        <div className="detail">
+                            <i className="fas fa-temperature-high"></i>
+                            <p>Feels like</p>
+                            <p>{Math.round(main.feels_like)}°C</p>
+                        </div>
+                        
+                        <div className="detail">
+                            <i className="fas fa-tint"></i>
+                            <p>Humidity</p>
+                            <p>{main.humidity}%</p>
+                        </div>
+                        
+                        <div className="detail">
+                            <i className="fas fa-wind"></i>
+                            <p>Wind Speed</p>
+                            <p>{wind.speed} m/s</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Main App Component
+        function WeatherApp() {
+            const [weatherData, setWeatherData] = React.useState(null);
+            const [forecastData, setForecastData] = React.useState(null);
+            const [loading, setLoading] = React.useState(true);
+            const [error, setError] = React.useState(null);
+            const [city, setCity] = React.useState('London');
+
+            // Fetch weather data from API
+            const fetchWeatherData = async (cityName) => {
+                try {
+                    setLoading(true);
+                    setError(null);
+                    
+                    // Fetch current weather
+                    const currentResponse = await fetch(
+                        `${API_URL}/weather?q=${cityName}&appid=${API_KEY}&units=metric`
+                    );
+                    
+                    if (!currentResponse.ok) {
+                        if (currentResponse.status === 404) {
+                            throw new Error('City not found. Please try again.');
+                        } else if (currentResponse.status === 401) {
+                            throw new Error('API key issue. Please try again later.');
+                        } else {
+                            throw new Error('Failed to fetch weather data. Please try again.');
+                        }
+                    }
+                    
+                    const currentData = await currentResponse.json();
+                    
+                    // Fetch forecast
+                    const forecastResponse = await fetch(
+                        `${API_URL}/forecast?q=${cityName}&appid=${API_KEY}&units=metric`
+                    );
+                    
+                    if (!forecastResponse.ok) {
+                        throw new Error('Failed to fetch forecast data.');
+                    }
+                    
+                    const forecastData = await forecastResponse.json();
+                    
+                    setWeatherData(currentData);
+                    setForecastData(forecastData);
+                } catch (err) {
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            // Handle search
+            const handleSearch = (e) => {
+                e.preventDefault();
+                const searchValue = e.target.elements.search.value.trim();
+                if (searchValue) {
+                    setCity(searchValue);
+                    fetchWeatherData(searchValue);
+                }
+            };
+
+            // Initial data fetch
+            React.useEffect(() => {
+                fetchWeatherData(city);
+            }, []);
+
+            return (
+                <div className="container">
+                    <header className="app-header">
+                        <h1>Weather Forecast</h1>
+                        <p>Get real-time weather updates</p>
+                    </header>
+                    
+                    <form onSubmit={handleSearch} className="search-container">
+                        <input 
+                            type="text" 
+                            name="search"
+                            className="search-input" 
+                            placeholder="Enter city name..." 
+                            defaultValue={city}
+                        />
+                        <button type="submit" className="search-button">
+                            <i className="fas fa-search"></i> Search
+                        </button>
+                    </form>
+                    
+                    <div className="weather-container">
+                        {loading && <div className="loading">Loading weather data...</div>}
+                        
+                        {error && (
+                            <div className="error">
+                                <i className="fas fa-exclamation-circle"></i>
+                                <p>{error}</p>
+                            </div>
+                        )}
+                        
+                        {weatherData && !loading && !error && (
+                            <>
+                                <CurrentWeather data={weatherData} />
+                                <Forecast data={forecastData} />
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<WeatherApp />);
+    </script>
+</body>
 </html>
